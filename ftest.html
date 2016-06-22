@@ -5,20 +5,30 @@
 <script type="text/javascript" src="http://www.chartjs.org/assets/Chart.js"></script>
 </head>
 <body>
-    <h3>Working Chart</h3>
-    <canvas id="rice" width="600" height="400"></canvas>
+    <h3 id="heading">Working Chart</h3>
+    <div style="width:800px; margin:0 auto;">
+        <select id="period">
+        <option value="Today">Today</option>
+        <option value="LastWeek">Last Week</option>
+        <option value="LastMonth">Last Month</option>
+        <option value="LastQuarter">Last Quarter</option>
+    </select>
+        </div>
+    <div style="overflow-x : scroll ;">
+    <canvas id="rice" width="6000" height="400"></canvas>
+    </div>
     <canvas id="pie" width="600" height="400"></canvas>
 <script>
         var riceData = {
-        labels : ["January","February","March","April","May","June"],
+        labels : {{labels}},
         datasets :
          [
             {
-              fillColor : "rgba(172,194,132,0.4)",
+              fillColor : "#ACC26D",
               strokeColor : "#ACC26D",
               pointColor : "#fff",
               pointStrokeColor : "#9DB86D",
-              data : [1,0,1,0,1,0]
+              data : {{chartData}}
             }
          ]
         }
@@ -33,11 +43,44 @@
             color : "#2c9c69"
         }
     ];
+    var status = {{status}};
 
           var rice = document.getElementById('rice').getContext('2d');
-               new Chart(rice).Line(riceData);   
+            var barChart = new Chart(rice).Bar(riceData);   
         var pie = document.getElementById('pie').getContext('2d');
                new Chart(pie).Pie(pieData); 
+    
+         for(var i = 0;i<barChart.datasets[0].bars.length;i++){
+               if(status[i] == "e")
+                   barChart.datasets[0].bars[i].fillColor = "red";
+               else
+                   barChart.datasets[0].bars[i].fillColor = "green";
+           }
+    barChart.update();
+       
+    
+    
+    period.onchange = function(){
+        var selectPeriod = period.options[period.selectedIndex].value;
+        var url = "http://localhost:8080/ftest.html?testName=" + heading.innerText + "&period=" + selectPeriod;
+        window.location = url;
+        
+    };
+    
+    function httpGetAsync(theUrl, callback)
+    {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function() { 
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                callback(xmlHttp.responseText);
+        }
+        xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+        xmlHttp.send(null);
+    }
+    
+    function periodChangeCallback(responseText){
+        //location.reload();
+    }
 </script>
     
     </body>
