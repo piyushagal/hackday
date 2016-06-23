@@ -8,16 +8,32 @@
     <h3 id="heading">Working Chart</h3>
     <div style="width:800px; margin:0 auto;">
         <select id="period">
+        <option value="All">All</option>
         <option value="Today">Today</option>
         <option value="LastWeek">Last Week</option>
         <option value="LastMonth">Last Month</option>
         <option value="LastQuarter">Last Quarter</option>
-    </select>
-        </div>
-    <div style="overflow-x : scroll ;">
-    <canvas id="rice" width="6000" height="400"></canvas>
+        </select>
+        <select id="autobuild">
+        </select>
+        <button type="button" id="clearFilter">Clear Filter</button>
     </div>
-    <canvas id="pie" width="600" height="400"></canvas>
+    <div style="overflow-x : scroll ;">
+    <canvas id="bar" style="width:6000px;height:400px;"></canvas>        
+    </div>
+    <div style="margin:20px;">
+        <div style="float:left; clear:none; margin-left:100px;">
+            <canvas id="pie" height="200px" width="200px"></canvas>
+        </div>
+        <div style="height:400px; width:600px; float:right; clear:none; margin-right:200px;background-color: gray; border-color: black;border-style:solid">
+            <h3 style="margin-left:10px">
+             Stacktrac here !!!
+            </h3>
+        </div>
+    </div>
+    <div id="noData" style="display:none;">
+        No Test History to display for the selected period.
+    </div>
 <script>
         var riceData = {
         labels : {{labels}},
@@ -28,44 +44,36 @@
               strokeColor : "#ACC26D",
               pointColor : "#fff",
               pointStrokeColor : "#9DB86D",
-              data : {{chartData}}
+              data : {{chartData}},
+              fillText : "No Data in Chart"
             }
-         ]
+         ],
         }
-        var pieData = [
-
+    
+    var status = "{{status}}";
+    function countVal(val){
+        var count = 0;
+        for(var i = 0;i<status.length;i++){
+            if(status[i] == val) count++;
+        }
+        return count;
+    }
+    var success = countVal("y");
+    var error = countVal("e");
+    var pieData = [
         {
-            value: 20,
-            color:"#637b85"
+            value: error,
+            label: "Failed",
+            color:"#bf0000"
         },
         {
-            value : 30,
+            value : success,
+            label : "Passed",
             color : "#2c9c69"
         }
     ];
-    var status = {{status}};
-
-          var rice = document.getElementById('rice').getContext('2d');
-            var barChart = new Chart(rice).Bar(riceData);   
-        var pie = document.getElementById('pie').getContext('2d');
-               new Chart(pie).Pie(pieData); 
     
-         for(var i = 0;i<barChart.datasets[0].bars.length;i++){
-               if(status[i] == "e")
-                   barChart.datasets[0].bars[i].fillColor = "red";
-               else
-                   barChart.datasets[0].bars[i].fillColor = "green";
-           }
-    barChart.update();
-       
-    
-    
-    period.onchange = function(){
-        var selectPeriod = period.options[period.selectedIndex].value;
-        var url = "http://localhost:8080/ftest.html?testName=" + heading.innerText + "&period=" + selectPeriod;
-        window.location = url;
-        
-    };
+        httpGetAsync("http://localhost:8080/autobuild",loadAutobuild);
     
     function httpGetAsync(theUrl, callback)
     {
@@ -78,9 +86,65 @@
         xmlHttp.send(null);
     }
     
-    function periodChangeCallback(responseText){
-        //location.reload();
+    function loadAutobuild(options){
+        var autobuildList = document.getElementById("autobuild");
+        var res = options.split(",");
+        for(var i = 1;i<res.length;i++)
+            autobuildList.add(new Option(res[i]));
     }
+    
+    
+    if(status.length>0){
+          var barCtx = document.getElementById('bar').getContext('2d');
+          document.getElementById('bar').style.width = status.length * 40 + "px";
+            var barChart = new Chart(barCtx).Bar(riceData);   
+        var pieCtx = document.getElementById('pie').getContext('2d');
+               var pieChart = new Chart(pieCtx).Pie(pieData); 
+    
+         for(var i = 0;i<status.length;i++){
+               if(status[i] == "e")
+                   barChart.datasets[0].bars[i].fillColor = "red";
+               else
+                   barChart.datasets[0].bars[i].fillColor = "green";
+           }
+    
+    barChart.update();
+    }else{
+        document.getElementById('bar').style.display = 'none';
+        document.getElementById('pie').style.display = 'none';
+        document.getElementById('noData').style.display = 'inline';
+    }
+    
+    period.onchange = function(){
+        var selectPeriod = period.options[period.selectedIndex].value;
+        var url = "http://localhost:8080/ftest.html?testName=" + heading.innerText + "&period=" + selectPeriod;
+        window.location = url;
+    };
+    
+    autobuild.onchange = function(){
+        var selectPeriod = period.options[period.selectedIndex].value;
+        var selectAutobuild = autobuild.options[autobuild.selectedIndex].value;
+        var url = "http://localhost:8080/ftest.html?testName=" + heading.innerText + "&period=" + selectPeriod + "&autobuild=" + selectAutobuild;
+        window.location = url;
+    };
+    
+    pie.onclick = function(evt){
+        var activePoints = pieChart.getSegmentsAtEvent(evt);
+        var i = location.href.indexOf("&status");
+        var url = location.href;
+        if(i>0){
+            url = location.href.substr(0, i);
+        }
+        location = url + "&status=" + activePoints[0].label;
+    }
+    clearFilter.onclick = function(){
+        var url = "http://localhost:8080/ftest.html?testName=" + heading.innerText;
+        window.location = url;
+    }
+    
+
+    
+    
 </script>
     
     </body>
