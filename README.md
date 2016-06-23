@@ -13,4 +13,4 @@ node testHistoryServer.js
 
 
 <h2> To Import CSV </h2>
- mongoimport --db testHistory --collection testH --type csv --headerline --file Downloads/sample\ forcasting\ data\ -\ data.csv 
+ mongoimport --db testHistory --collection test --type csv --headerline --file Downloads/sample\ forcasting\ data\ -\ data.csv 
