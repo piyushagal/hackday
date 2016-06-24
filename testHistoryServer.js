@@ -142,6 +142,14 @@ function handleRequest(request, response) {
                 }
                     response.write(stacktrace);
                     response.end();
+            }else if(path == "/failure.html"){
+                fs.readFile('failure.html', 'utf-8', function(err, data) {
+                response.writeHead(200, {
+                'Content-Type': 'text/html'
+                });
+                    response.write(data);
+                    response.end();
+                });
             }
             
 }

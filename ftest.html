@@ -28,7 +28,12 @@
     </div>
     <div style="margin:20px;">
         <div style="float:left; clear:none; margin-left:50px;">
+            <div>
             <canvas id="pie" height="200px" width="300px"></canvas>
+            </div>
+            <div style="float:left; clear:none; margin-left:10px;">
+                <button type="button" id="topFailure">Top Failure</button>
+            </div>
         </div>
         <div id = 'stacktrace' style="display: none;height:400px; width:850px; float:right; clear:none;   margin-right:50px;background-color: #E6E6E6; border-color: black;border-style:solid;white-space: pre-wrap;padding:10px;overflow-x : scroll ;">
             
@@ -192,6 +197,9 @@
         var selectedAuto = localStorage.setItem('autobuild', 'All');
         window.location = url;
     }
+    topFailure.onclick = function(){
+        window.open(homeUrl + "failure.html");
+    };
     
     function showStacktrace(trace){
         var st = document.getElementById("stacktrace");

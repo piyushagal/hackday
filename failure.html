@@ -1,0 +1,79 @@
+<html>
+<head>
+    <title>Top Failure</title>
+    <meta charset="utf-8" />
+    <style>
+            body {
+          font: normal medium/1.4 sans-serif;
+        }
+        table {
+          margin: 1em 0;
+            width: 100%;
+            overflow: hidden;  
+            background: #FFFFFF;
+            color: #024457;
+            border-radius: none;
+            border: 1px solid #167F92;
+        }
+        th {
+          border: 1px solid #D9E4E6;
+          background-color: #0066FF;
+          color: #FFFFFF;
+          padding: 1em;  
+         }
+        
+         td {
+          padding: 0.25rem;
+          text-align: left;
+          border: 1px solid #ccc;
+        }
+        tbody tr:nth-child(odd) {
+          background: #CCCCFF;
+        }
+        
+  
+        
+    </style>
+
+</head>
+<body>
+   <h1>Top Failures for Test Run</h1>
+<table class="zebra"> 
+<thead> 
+<tr> 
+    <th >No.</th> 
+    <th>STACK TRACE</th> 
+    <th>COUNT</th> 
+    <th>BUG ID</th> 
+    <th>OPEN DATE</th> 
+</tr> 
+</thead> 
+<tbody> 
+<tr> 
+    <td>1</td> 
+    <td>system.organization.setting.TerritoryManagement2EnableOrgPreference$1 at system.organization.setting..throwExceptionWithFailureMessage(TerritoryManagement2EnableOrgPreference.java:86) at  system.organization.disable(OrgSetting.java:581) at test.util.BaseTest.setOrgPreference(BaseTest.java:1639) at test.util.BaseTest.setOrgPreference(BaseTest.java:1586) at sales.territory2.basetest.Territory2BaseFTest.disableTM2(Territory2BaseFTest.java:94) at sales.territory2.basetest.Territory2BaseFTest.ftestTearDown at sales.territory2.modeldelete.ftestTearDown at test.util.BaseTest.tearDown(BaseTest.java:1068) at test.util.SimplerTestCase.doRunBare(SimplerTestCase.java:245) at test.util.BaseTest.doRunBare(BaseTest.java:556) at test.util.SimplerTestCase.runBare(SimplerTestCase.java:234) at test.TimeLimitedTestResult$1$1.call(TimeLimitedTestResult.java:149) at test.1$1.call(TimeLimitedTestResult.java:1) at  at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617) at java.lang.Thread.run(Thread.java:745)</td> 
+    <td>27</td> 
+    <td>W-156546</td> 
+    <td>05/22/2016</td> 
+</tr> 
+<tr> 
+    <td>2</td> 
+    <td>ava.lang.Throwable: Current thread: testProductFamilyRow java.lang.AssertionError: 
+        totalNumberOfRows had differences expected: but was: at org.junit.Assert.fail(Assert.java:88) at org.junit.Assert.failNotEquals(Assert.java:743) at org.junit.Assert.assertEquals(Assert.java:118) at connect.api.util.test.ConnectTestNode.assertIntProperty(ConnectTestNode.java:189) at sales.forecasting.testframework(ForecastingConnectRepresentationTestingService.java:382) at sales.forecasting.connect.getAndValidateOppportunities(ForecastingOpportunitiesConnectBaseTest.java:79) </td> 
+    <td>12</td> 
+    <td>W-153487</td> 
+    <td>05/01/2016</td> 
+</tr> 
+<tr> 
+    <td>3</td> 
+    <td> null) failed to acquire lock held by node: 1 sid: 1344 checkout info: could not get checkout info at common.exception.SQLExceptionMap.mapSfdcDefinedException(SQLExceptionMap.java:254) at common.exception.SQLExceptionMap.mapAndThrowSQLException(SQLExceptionMap.java:141) at system.plsql.PljavaExecutorImpl.addParamsToSqlExceptionAndThrow(PljavaExecutorImpl.java:174) at system.plsql.PljavaExecutorImpl._execMethod(PljavaExecutorImpl.java:391) at system.plsql.PljavaExecutorImpl.execMethod(PljavaExecutorImpl.java:315) at 
+    common.sharing.owd.OWDUpdateHandler.performUpdate(OWDUpdateHandler.java:162) at common.sharing.owd.OWDUpdateMessageHandler.updateSharingConfig(OWDUpdateMessageHandler.java:192) at system.security.BaseSharing.updateSharingConfiguration(BaseSharing.java:856) at system.security.BaseSharing.updateSharingConfiguration(BaseSharing.java:958) at system.security.BaseSharing.updateSharingConfiguration(BaseSharing.java:734) at system.security.BaseSharing.updateCampaignSharingWithTheRestIntact(BaseSharing.java:660) at system.security.BaseSharing.updateCampaignSharingWithFullAccessModel(BaseSharing.java:701) at common.sharing.CampaignParallelSharingRuleRecalcTest.ftestTearDown(CampaignParallelSharingRuleRecalcTest.java:43) at test.util.BaseTest.tearDown(BaseTest.java:1068) at test.util.SimplerTestCase.doRunBare(SimplerTestCase.java:245) at test.util.BaseTest.doRunBare(BaseTest.java:556) at test.util.SimplerTestCase.runBare(SimplerTestCase.java:234) at </td> 
+    <td>5</td> 
+    <td>W-150314</td> 
+    <td>05/17/2016</td> 
+</tr> 
+</tbody> 
+</table> 
+    
+</body>
+</html>
