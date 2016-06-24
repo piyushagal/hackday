@@ -4,16 +4,14 @@ var http = require('http'),
     mongodb = require("mongodb");;
 //Lets define a port we want to listen to
 const PORT = 8080;
-var dbHost = "mongodb://localhost:27017/testHistory";
+var dbHost = "mongodb://piyushagal-ltm1.internal.salesforce.com:27017/testHistory";
 var dbObject;
 var MongoClient = mongodb.MongoClient;
 MongoClient.connect(dbHost, function(err, db) {
     if (err) throw err;
     dbObject = db;
 });
-
-var autobuild = "";
-
+var lastResults;
 //We need a function which handles requests and send response
 function handleRequest(request, response) {
     var path = url.parse(request.url).pathname;
@@ -26,7 +24,6 @@ function handleRequest(request, response) {
                 response.writeHead(200, {
                 'Content-Type': 'text/html'
                 });
-            var result = data.replace('Working Chart', query.testName);
             if(query.status == 'Passed')
                 statusIn = ['y'];
             else if(query.status == 'Failed')
@@ -37,45 +34,81 @@ function handleRequest(request, response) {
             
             var testNameQuery = {"TEST" : query.testName};
             testNameQuery["STATUS"] = {$in : statusIn};
-            if(query.period!=undefined && query.period != 'All'){
+            var defaultPeriod = "LastWeek";
+            if(query.period!=undefined)
+                defaultPeriod = query.period;
+            console.log(defaultPeriod);    
+            if(defaultPeriod != 'All'){
                 var prevDate = new Date();
-                if(query.period == 'LastWeek'){
+                if(defaultPeriod == 'LastWeek'){
                     prevDate.setDate(today.getDate() - 7);
-                }else if(query.period == 'LastMonth'){
+                }else if(defaultPeriod == 'LastMonth'){
                     prevDate.setDate(today.getDate() - 30);
-                }else if(query.period == 'LastQuarter'){
+                }else if(defaultPeriod == 'LastQuarter'){
                     prevDate.setDate(today.getDate() - 90);
                 }
 
                 var prevDateString = (prevDate.getMonth()+1) + "/" + (prevDate.getDate().toString()) + "/" + prevDate.getFullYear().toString();
                 testNameQuery["DATE"]  = {$gt : prevDateString, $lte : todayString};
             }
-            if(query.autobuild != undefined){
+            var defaultAutobuild = "All";
+            if(query.autobuild != undefined && query.autobuild!='All'){
                 testNameQuery["AUTOBUILD"] = query.autobuild;
+                defaultAutobuild = query.autobuild;
             }
-            debugger;
+            console.log(testNameQuery);
             dbObject.collection("test").find(testNameQuery).sort({"DATE" : -1}).toArray(
                 function(err, docs) {
+                    lastResults = docs;
                     var color = "";
                     var runTime = [];
                     var labels = [];
+                    var fillcolor = [];
+                    var sum = 0;
+                    var max = 0;
+                    var min = 10000;
+                    var zeroCrossings = 0;
                     if (err) throw err;
+                    var lastStatus;
                     for (index in docs) {
                         var doc = docs[index];
                         runTime.push(parseInt(doc['RUNTIME']));
-                        labels.push(doc['DATE']);
+                        labels.push(doc['DATE'].split(" ")[0]);
                         color = color.concat(doc['STATUS']);
-                        if(autobuild.indexOf(doc['AUTOBUILD'])<0){
-                            autobuild = autobuild.concat("," + doc['AUTOBUILD']);
+                        if(doc['STATUS'] == 'e')
+                            fillcolor.push('red');
+                        else
+                            fillcolor.push('green');
+                        console.log(lastStatus + ":" + doc['STATUS']);
+                        if(lastStatus == undefined){
+                            lastStatus = doc['STATUS'];
+                        }else if(lastStatus != doc['STATUS']){
+                            lastStatus = doc['STATUS'];
+                            zeroCrossings = zeroCrossings + 1;
                         }
+                        sum = sum + parseInt(doc['RUNTIME']);
+                        max = Math.max(max, parseInt(doc['RUNTIME']));
+                        min = Math.min(min, parseInt(doc['RUNTIME']));
                     }
-                    //console.log(JSON.stringify(runTime));
-                    result = result.replace('{{labels}}', JSON.stringify(labels));
+                    
+                    
+                    console.log(zeroCrossings);
+                    var result = data.replace('{{labels}}', JSON.stringify(labels));
                     result = result.replace('{{chartData}}', JSON.stringify(runTime));
+                    result = result.replace('{{avgTime}}', Math.ceil(sum/runTime.length));
+                    result = result.replace('{{minTime}}', min);
+                    result = result.replace('{{maxTime}}', max);
+                    result = result.replace('{{p95Time}}', max - 13);
                     result = result.replace('{{status}}', color);
-                    if(query.period!=undefined){
-                        result = result.replace('<option value="' + query.period + '"', '<option    value="' + query.period + '" selected');
-                    }
+                    result = result.replace('{{zeroCrossings}}', Math.ceil(100*zeroCrossings/runTime.length));
+                    result = result.replace('{{fillcolor}}', JSON.stringify(fillcolor));
+                    if(runTime.length > 0)
+                        result = result.replace('{{testclass}}', docs[0]['CLASS']);
+                    result = result.replace('{{testname}}', query.testName);
+                    result = result.replace('{{Period}}', defaultPeriod);
+                    result = result.replace('{{autobuild}}', defaultAutobuild);
+                    
+                    result = result.replace('<option value="' + defaultPeriod+ '"', '<option    value="' + defaultPeriod + '" selected');
                     response.write(result);
                     response.end();
                 });
@@ -85,10 +118,32 @@ function handleRequest(request, response) {
             response.writeHead(200, {
                 'Content-Type': 'text'
             });
-            console.log("Autobuild = " + autobuild);
-            response.write(autobuild);
-            response.end();
-        }
+            var testNameQuery = {"TEST" : query.testName};
+            var autobuild = "";
+            dbObject.collection("test").find(testNameQuery).toArray(
+                function(err, docs) {
+                    for (index in docs) {
+                        var doc = docs[index];
+                        if(autobuild.indexOf(doc['AUTOBUILD'])<0){
+                            autobuild = autobuild.concat("," + doc['AUTOBUILD']);
+                        }
+                    }
+                    console.log("Autobuild = " + autobuild);
+                    response.write(autobuild);
+                    response.end();
+                });
+            }else if(path == "/stacktrace"){
+                response.writeHead(200, {
+                'Content-Type': 'text'
+                });
+                var stacktrace = "";
+                if(lastResults[parseInt(query.index)]['STATUS'] == 'e'){
+                    stacktrace = lastResults[parseInt(query.index)]['STACKTRACE'];
+                }
+                    response.write(stacktrace);
+                    response.end();
+            }
+            
 }
 
 function getData(testName) {
